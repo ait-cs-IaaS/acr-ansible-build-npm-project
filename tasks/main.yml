@@ -1,0 +1,43 @@
+---
+- name: Ensure .env file exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ project_path }}/.env"
+    state: touch
+    owner: "{{ project_user }}"
+    group: "{{ project_user }}"
+    mode: "0600"
+
+- name: Write content to .env file
+  become: true
+  ansible.builtin.lineinfile:
+    path: "{{ project_path }}/.env"
+    line: "{{ env_var.key }}={{ env_var.value | quote }}"
+  loop: "{{ project_env | dict2items }}"
+  loop_control:
+    loop_var: env_var
+
+- name: Install npm packages
+  become: true
+  become_user: "{{ project_user }}"
+  community.general.npm:
+    path: "{{ project_path }}"
+
+- name: Build project
+  become: true
+  become_user: "{{ project_user }}"
+  ansible.builtin.command:
+    cmd: npm run build
+    chdir: "{{ project_path }}"
+  environment: "{{ project_env }}"
+  changed_when: false
+
+- name: Copy build to live directory
+  become: true
+  ansible.builtin.copy:
+    src: "{{ project_path }}/dist/"
+    dest: "{{  project_dest }}"
+    owner: "{{ project_user }}"
+    group: "{{ project_user }}"
+    mode: "755"
+    remote_src: true

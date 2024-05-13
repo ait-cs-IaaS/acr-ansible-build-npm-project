@@ -1,0 +1,5 @@
+---
+project_user: username
+project_path: /project
+project_env: {}
+project_dest: /var/www/html/project
