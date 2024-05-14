@@ -32,6 +32,16 @@
   environment: "{{ project_env }}"
   changed_when: false
 
+- name: Ensure destination directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ project_dest }}"
+    owner: "{{ project_user }}"
+    group: "{{ project_user }}"
+    mode: "0755"
+    state: directory
+    recurse: true
+
 - name: Copy build to live directory
   become: true
   ansible.builtin.copy:
